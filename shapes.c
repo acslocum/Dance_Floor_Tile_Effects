@@ -1,5 +1,5 @@
 #include "shapes.h"
-
+/*
 void verticalLine(Adafruit_WS2801 strip, uint8_t x, uint8_t y1, uint8_t y2, uint32_t color) {
   int i=0;
   if(y1>y2) {//swap
@@ -78,3 +78,4 @@ byte unWheel(uint32_t color) {
     return (byte)(g/3+170);
   }
 }
+*/

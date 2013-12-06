@@ -1,6 +1,7 @@
 #include "SPI.h"
-#include "Adafruit_WS2801.h"
+//#include <Adafruit_WS2801.h>
 #include "shapes.h"
+#include "floor.h"
 
 /*****************************************************************************
 Example sketch for driving Adafruit WS2801 pixels!
@@ -34,24 +35,38 @@ uint8_t clockPin = 12;    // Green wire on Adafruit Pixels
 uint16_t WIDTH=5;
 uint16_t HEIGHT=5;
 
+//  1 6 7
+//  2 5 8
+//  3 4 9
+int orientation[9] = {1,2,1,4,3,4,1,2,1};
+
 // Don't forget to connect the ground wire to Arduino ground,
 // and the +5V wire to a +5V supply
 
 // Set the first variable to the NUMBER of pixels in a row and
 // the second value to number of pixels in a column.
-Adafruit_WS2801 strip = Adafruit_WS2801(WIDTH, HEIGHT, dataPin, clockPin);
+//Adafruit_WS2801 strip = Adafruit_WS2801(WIDTH, HEIGHT, dataPin, clockPin);
 
 void setup() {
-    
-  strip.begin();
+    Serial.begin(9600);
+//  strip.begin();
 
   // Update LED contents, to start they are all 'off'
-  strip.show();
-  randomSeed(analogRead(0));
+//  strip.show();
+//  randomSeed(analogRead(0));
+    Serial.println("starting");
+  
+}
+
+void loop() {
+  Floor dance= Floor(225, 3, orientation, dataPin, clockPin);
+  dance.printGrid();
+  Serial.println("done");
+  delay(10*1000);
 }
 
 
-void loop() {
+/*void loop() {
   // Some example procedures showing how to display to the pixels
   //drawX(5, 5, 100);
   //drawLine(0,0,0,4,Wheel(random(256)),2000);
@@ -423,7 +438,7 @@ int randomCycle(int steps, uint16_t wait) {
   }
 }
 
-/* Helper functions */
+/* Helper functions 
 
 void colorCycle(Adafruit_WS2801 strip, uint8_t x, uint8_t y) {
   uint16_t linearLocation = x + WIDTH*y;
@@ -431,4 +446,4 @@ void colorCycle(Adafruit_WS2801 strip, uint8_t x, uint8_t y) {
   byte wheelColor = unWheel(color);
   strip.setPixelColor(x,y,Wheel((wheelColor+1)%256));
 }
-
+*/

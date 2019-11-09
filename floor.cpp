@@ -22,7 +22,7 @@
   }
   
   uint32_t Floor::getPixelColor(int x, int y) {
-    return 0;//strip.getPixelColor(lookup(x,y));
+    return 0; //strip.getPixelColor(lookup(x,y));
   }
   
   int Floor::lookup(int x, int y) {

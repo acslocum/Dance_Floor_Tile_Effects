@@ -34,11 +34,21 @@ uint8_t clockPin = 12;    // Green wire on Adafruit Pixels
 
 uint16_t WIDTH=15;
 uint16_t HEIGHT=15;
+uint16_t STRIP_LENGTH=225;
+int serialInputBoardPosition=0;
 
 //  1 6 7
 //  2 5 8
 //  3 4 9
-int orientation[9] = {1,2,1,4,3,4,1,2,1};
+//int orientation[9] = {1,2,1,4,3,4,1,2,1};
+// 4 5
+// 3 6
+// 2 7 8
+// 1 0
+int tetrisOrientation[9] = {2,3,4,3,4,1,2,1,4};
+int tetrisBoardInput[STRIP_LENGTH];
+int inputBoard[STRIP_LENGTH];
+int boardIndices[225];
 
 // Don't forget to connect the ground wire to Arduino ground,
 // and the +5V wire to a +5V supply
@@ -46,7 +56,7 @@ int orientation[9] = {1,2,1,4,3,4,1,2,1};
 // Set the first variable to the NUMBER of pixels in a row and
 // the second value to number of pixels in a column.
 Adafruit_WS2801 strip = Adafruit_WS2801(WIDTH, HEIGHT, dataPin, clockPin);
-Floor dance= Floor(225, 3, orientation, dataPin, clockPin);
+Floor dance= Floor(STRIP_LENGTH, 3, orientation, dataPin, clockPin);
 
 void setup() {
     //Serial.begin(9600);
@@ -56,16 +66,50 @@ void setup() {
   strip.show();
   randomSeed(analogRead(0));
     //Serial.println("starting");
+  initBoardIndices();
+}
+
+void initBoardIndices() {
+  int i=0;
   
+}
+
+void writeTetrisBoard(int[] boardArray) {
+  uint32_t color = 0;
+  for(int i=0; i < STRIP_LENGTH; ++i) {
+    uint32_t color = Wheel(boardArray[i]);
+    strip.setPixelColor(i, color);
+  }
+}
+
+void serialEvent() {
+  while (Serial.available()) {
+    int inChar = Serial.read();
+    if(inChar == 255) {
+      serialInputBoardPosition=0;
+    } else {
+      if(serialInputBoardPosition < STRIP_LENGTH) {
+        inputBoard[serialInputBoardPosition++] = inChar;
+      }
+    }
+  }
+}
+
+int[] translateBoard(int[] board) {
+  outputboard[i] = board[mapping[i]]
 }
 
 void loop() 
 {
   uint32_t i;
-  
+
+  boardArray = translateBoard(inputBoard);
+  writeTetrisBoard(boardArray);
+  strip.show();
+  //delay(50); //if needed
 
   //uncomment block below for Fortress Party
-  
+  /*
   for (int i=0; i < 5; i++)
   {
     checkerboard(15, 15, Wheel(random(256)), 0, 1000); 
@@ -108,7 +152,8 @@ void loop()
   {
     slideOutLines2(15,15,100);
   }
-  
+  */
+  //end dance floor
 
   
 

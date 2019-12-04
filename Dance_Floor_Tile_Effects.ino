@@ -1,7 +1,7 @@
 #include "SPI.h"
 #include "Adafruit_WS2801.h"
-#include "shapes.h"
-#include "floor.h"
+//#include "shapes.h"
+//#include "floor.h"
 
 /*****************************************************************************
 Example sketch for driving Adafruit WS2801 pixels!
@@ -34,8 +34,9 @@ uint8_t clockPin = 12;    // Green wire on Adafruit Pixels
 
 uint16_t WIDTH=15;
 uint16_t HEIGHT=15;
-uint16_t STRIP_LENGTH=225;
+const uint16_t STRIP_LENGTH=225;
 int serialInputBoardPosition=0;
+int drawNext = 0;
 
 //  1 6 7
 //  2 5 8
@@ -46,10 +47,9 @@ int serialInputBoardPosition=0;
 // 2 7 8
 // 1 0
 //int tetrisOrientation[9] = {2,3,4,3,4,1,2,1,4};
-int tetrisBoardInput[STRIP_LENGTH];
-int inputBoard[STRIP_LENGTH];
-int boardIndices[225];
-int mapping[225] = { 
+int inputBoard[STRIP_LENGTH] = {};
+int outputBoard[STRIP_LENGTH] = {};
+int mapping[STRIP_LENGTH] = { 
   120, 121, 122, 123, 124,  125, 134, 135, 144, 145,
   119, 118, 117, 116, 115,  126, 133, 136, 143, 146,
   110, 111, 112, 113, 114,  127, 132, 137, 142, 147,
@@ -87,7 +87,7 @@ int mapping[225] = {
 // Set the first variable to the NUMBER of pixels in a row and
 // the second value to number of pixels in a column.
 Adafruit_WS2801 strip = Adafruit_WS2801(WIDTH, HEIGHT, dataPin, clockPin);
-Floor dance= Floor(STRIP_LENGTH, 3, orientation, dataPin, clockPin);
+//Floor dance= Floor(STRIP_LENGTH, 3, orientation, dataPin, clockPin);
 
 void setup() {
     //Serial.begin(9600);
@@ -96,24 +96,25 @@ void setup() {
   // Update LED contents, to start they are all 'off'
   strip.show();
   randomSeed(analogRead(0));
-    //Serial.println("starting");
-  initBoardIndices();
+    //Serial.println("starting");  
 }
 
-void initBoardIndices() {
-  int i=0;
-  
-}
 
-void writeTetrisBoard(int[] boardArray) {
+void writeTetrisBoard(int* boardArray) {
   uint32_t color = 0;
   for(int i=0; i < STRIP_LENGTH; ++i) {
-    uint32_t color = Wheel(boardArray[i]);
+    uint32_t color = 0;
+    if(boardArray[i] == -1) {
+      color = Black();
+    } else {
+      color = Wheel(boardArray[i]);
+    }
+
     strip.setPixelColor(i, color);
   }
 }
 
-void serialEvent() {
+/*void serialEvent() {
   while (Serial.available()) {
     int inChar = Serial.read();
     if(inChar == 255) {
@@ -124,19 +125,33 @@ void serialEvent() {
       }
     }
   }
-}
+}*/
 
-int[] translateBoard(int[] board) {
-  outputboard[i] = board[mapping[i]]
+void translateBoard(int* board) {
+  for(int i=0; i<STRIP_LENGTH; ++i) {
+    //outputBoard[i] = Wheel(board[mapping[i]]);
+    //outputBoard[i] = Wheel(random(256));
+    //outputBoard[i] = Wheel(mapping[i]);
+    outputBoard[i] = board[i];
+    //Serial.println(mapping[i]);
+    //board[mapping[i]];
+  }
 }
 
 void loop() 
 {
   uint32_t i;
+  uint32_t color = 0;
 
-  boardArray = translateBoard(inputBoard);
-  writeTetrisBoard(boardArray);
+  inputBoard[mapping[(drawNext+STRIP_LENGTH-1)%STRIP_LENGTH]] = -1;
+  inputBoard[mapping[drawNext++]  ] = random(256);
+  if(drawNext >= STRIP_LENGTH) {
+    drawNext = 0;
+  }
+  translateBoard(inputBoard);
+  writeTetrisBoard(outputBoard);
   strip.show();
+  delay(100);
   //delay(50); //if needed
 
   //uncomment block below for Fortress Party
@@ -221,7 +236,7 @@ void loop()
   randomCycle(256,50);
 }
 */
-
+/*
 void concentricSquares(uint8_t w, uint8_t h, uint16_t wait)
 {
   int8_t i,x,y;
@@ -256,7 +271,7 @@ void perspective(uint8_t w, uint8_t h, uint16_t wait)
     drawLine(0,h/2,w-1,h/2, 0, 0);
     strip.show();
   }
-  */
+  *
   for (i=0; i <= w/2; i++)
   {
     // i+1 is the number of lines that get colored
@@ -769,7 +784,7 @@ int randomCycle(int steps, uint16_t wait) {
     delay(wait);
   }
 }
-
+*/
 // Helper functions 
 // Create a 24 bit color value from R,G,B
 uint32_t Color(byte r, byte g, byte b)
@@ -796,6 +811,10 @@ uint32_t Wheel(byte WheelPos)
    WheelPos -= 170; 
    return Color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
+}
+
+uint32_t Black() {
+  return Color(0,0,0);
 }
 
 byte unWheel(uint32_t color) {

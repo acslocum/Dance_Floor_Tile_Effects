@@ -132,14 +132,18 @@ int translateColor(int tetrisColor) {
 }
 
 void doSerialEvent() {
+  byte bytes[251];
   while (Serial.available() > 0) {
-    int inChar = Serial.read();
-    Serial.print(inChar);
-    if(inChar >=100) { //new row
-      serialInputBoardPosition=0;
-      currentRowInput = inChar-100;
-    }else { //cell in a row
-      inputBoard[gridIndex(currentRowInput, serialInputBoardPosition++)] = translateColor(inChar);
+    size_t newBytes = Serial.readBytes(bytes,50);
+    //Serial.print(inChar);
+    for(int i=0; i<newBytes;++i) {
+      int inChar = bytes[i];
+      if(inChar >=100) { //new row
+        serialInputBoardPosition=0;
+        currentRowInput = inChar-100;
+      }else { //cell in a row
+        inputBoard[gridIndex(currentRowInput, serialInputBoardPosition++)] = translateColor(inChar);
+      }
     }
   }
 }

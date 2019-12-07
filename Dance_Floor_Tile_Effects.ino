@@ -37,6 +37,7 @@ uint16_t HEIGHT=15;
 const uint16_t STRIP_LENGTH=225;
 int serialInputBoardPosition=0;
 int drawNext = 0;
+int currentRowInput = 0;
 
 //  1 6 7
 //  2 5 8
@@ -48,7 +49,7 @@ int drawNext = 0;
 // 1 0
 //int tetrisOrientation[9] = {2,3,4,3,4,1,2,1,4};
 int inputBoard[STRIP_LENGTH] = {};
-int outputBoard[STRIP_LENGTH] = {};
+//int outputBoard[STRIP_LENGTH] = {};
 int mapping[STRIP_LENGTH] = { 
   120, 121, 122, 123, 124,  125, 134, 135, 144, 145,
   119, 118, 117, 116, 115,  126, 133, 136, 143, 146,
@@ -90,13 +91,22 @@ Adafruit_WS2801 strip = Adafruit_WS2801(WIDTH, HEIGHT, dataPin, clockPin);
 //Floor dance= Floor(STRIP_LENGTH, 3, orientation, dataPin, clockPin);
 
 void setup() {
-    //Serial.begin(9600);
+  Serial.begin(9600);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }    
   strip.begin();
 
+  for(int i=0; i < STRIP_LENGTH; ++i) {
+    inputBoard[i] = -1;
+  }
   // Update LED contents, to start they are all 'off'
   strip.show();
   randomSeed(analogRead(0));
-    //Serial.println("starting");  
+  Serial.println("starting");  
+
+  pinMode(LED_BUILTIN, OUTPUT);
+
 }
 
 
@@ -110,13 +120,54 @@ void writeTetrisBoard(int* boardArray) {
       color = Wheel(boardArray[i]);
     }
 
-    strip.setPixelColor(i, color);
+    strip.setPixelColor(mapping[i], color);
   }
 }
 
-/*void serialEvent() {
+int translateColor(int tetrisColor) {
+  if(tetrisColor == 0)
+    return -1;
+  return tetrisColor * 16;
+  
+}
+
+void doSerialEvent() {
+  while (Serial.available() > 0) {
+    int inChar = Serial.read();
+    Serial.print(inChar);
+    if(inChar >=100) { //new row
+      serialInputBoardPosition=0;
+      currentRowInput = inChar-100;
+    }else { //cell in a row
+      inputBoard[gridIndex(currentRowInput, serialInputBoardPosition++)] = translateColor(inChar);
+    }
+  }
+}
+
+int gridIndex(int row, int index) {
+  if(row >= 20) {//'next' grid is 5x5
+    if(index > 4) {
+      index = 4;
+    }
+    return 200 + (row-20)*5 + index;
+  } 
+
+  if(index >= 10) {//main grid is 10x20
+    index = 9;
+  }
+  return row*10+index;
+  
+}
+
+
+/*
+void serialEvent() {
   while (Serial.available()) {
     int inChar = Serial.read();
+    //digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+    //delay(50);                       // wait for a second
+    //digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+    //delay(50);                       // wait for a second
     if(inChar == 255) {
       serialInputBoardPosition=0;
     } else {
@@ -125,16 +176,36 @@ void writeTetrisBoard(int* boardArray) {
       }
     }
   }
-}*/
+}
+*/
 
+/*
+void serialEvent() {
+  while (Serial.available()) {
+    int inChar = Serial.read();
+    //delay(300);
+    Serial.println(inChar);
+  }
+  Serial.println("hi");
+}
+*/
 void translateBoard(int* board) {
   for(int i=0; i<STRIP_LENGTH; ++i) {
     //outputBoard[i] = Wheel(board[mapping[i]]);
     //outputBoard[i] = Wheel(random(256));
     //outputBoard[i] = Wheel(mapping[i]);
-    outputBoard[i] = board[i];
+    //outputBoard[mapping[i]] = board[i];
     //Serial.println(mapping[i]);
     //board[mapping[i]];
+  }
+}
+
+void checkTetrisBoard() {
+  inputBoard[(drawNext+STRIP_LENGTH-1)%STRIP_LENGTH] = -1;
+  inputBoard[ drawNext++ ] = random(256);
+  if(drawNext >= STRIP_LENGTH) {
+    drawNext = 0;
+    Serial.println("Loop");
   }
 }
 
@@ -143,15 +214,12 @@ void loop()
   uint32_t i;
   uint32_t color = 0;
 
-  inputBoard[mapping[(drawNext+STRIP_LENGTH-1)%STRIP_LENGTH]] = -1;
-  inputBoard[mapping[drawNext++]  ] = random(256);
-  if(drawNext >= STRIP_LENGTH) {
-    drawNext = 0;
-  }
-  translateBoard(inputBoard);
-  writeTetrisBoard(outputBoard);
+  doSerialEvent();
+  //checkTetrisBoard();
+  //translateBoard(inputBoard);
+  writeTetrisBoard(inputBoard);
   strip.show();
-  delay(100);
+  //delay(100);
   //delay(50); //if needed
 
   //uncomment block below for Fortress Party

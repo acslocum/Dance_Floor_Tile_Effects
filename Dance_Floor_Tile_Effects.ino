@@ -38,7 +38,8 @@ const uint16_t STRIP_LENGTH=225;
 int serialInputBoardPosition=0;
 int drawNext = 0;
 int currentRowInput = 0;
-const uint16_t INPUT_BUFFER_SIZE=100;
+//const uint16_t INPUT_BUFFER_SIZE=100;
+int inputChar;
 
 //  1 6 7
 //  2 5 8
@@ -50,7 +51,7 @@ const uint16_t INPUT_BUFFER_SIZE=100;
 // 1 0
 //int tetrisOrientation[9] = {2,3,4,3,4,1,2,1,4};
 int inputBoard[STRIP_LENGTH] = {};
-byte inputBytes[INPUT_BUFFER_SIZE] = {};
+//byte inputBytes[INPUT_BUFFER_SIZE] = {};
 //int outputBoard[STRIP_LENGTH] = {};
 int mapping[STRIP_LENGTH] = { 
   120, 121, 122, 123, 124,  125, 134, 135, 144, 145,
@@ -136,8 +137,21 @@ int translateColor(int tetrisColor) {
 
 void doSerialEvent() {
   while (Serial.available() > 0) {
+    inputChar = Serial.read();
+    if(inputChar >=100) { //new row
+      serialInputBoardPosition=0;
+      currentRowInput = inputChar-100;
+    }else { //cell in a row
+      inputBoard[gridIndex(currentRowInput, serialInputBoardPosition++)] = translateColor(inputChar);
+    }
+  }
+}
+
+/* too slow
+void doSerialEvent() {
+  int inChar;
+  while (Serial.available() > 0) {
     size_t newBytes = Serial.readBytes(inputBytes,INPUT_BUFFER_SIZE);
-    //Serial.print(inChar);
     for(int i=0; i<newBytes;++i) {
       int inChar = inputBytes[i];
       if(inChar >=100) { //new row
@@ -149,6 +163,7 @@ void doSerialEvent() {
     }
   }
 }
+*/
 
 int gridIndex(int row, int index) {
   if(row >= 20) {//'next' grid is 5x5

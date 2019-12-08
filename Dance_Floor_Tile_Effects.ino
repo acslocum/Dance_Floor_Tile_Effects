@@ -38,6 +38,7 @@ const uint16_t STRIP_LENGTH=225;
 int serialInputBoardPosition=0;
 int drawNext = 0;
 int currentRowInput = 0;
+const uint16_t INPUT_BUFFER_SIZE=100;
 
 //  1 6 7
 //  2 5 8
@@ -49,6 +50,7 @@ int currentRowInput = 0;
 // 1 0
 //int tetrisOrientation[9] = {2,3,4,3,4,1,2,1,4};
 int inputBoard[STRIP_LENGTH] = {};
+byte inputBytes[INPUT_BUFFER_SIZE] = {};
 //int outputBoard[STRIP_LENGTH] = {};
 int mapping[STRIP_LENGTH] = { 
   120, 121, 122, 123, 124,  125, 134, 135, 144, 145,
@@ -99,11 +101,12 @@ void setup() {
 
   for(int i=0; i < STRIP_LENGTH; ++i) {
     inputBoard[i] = -1;
+    strip.setPixelColor(i, Black());
   }
   // Update LED contents, to start they are all 'off'
   strip.show();
   randomSeed(analogRead(0));
-  Serial.println("starting");  
+  //Serial.println("starting");  
 
   pinMode(LED_BUILTIN, OUTPUT);
 
@@ -132,12 +135,11 @@ int translateColor(int tetrisColor) {
 }
 
 void doSerialEvent() {
-  byte bytes[251];
   while (Serial.available() > 0) {
-    size_t newBytes = Serial.readBytes(bytes,50);
+    size_t newBytes = Serial.readBytes(inputBytes,INPUT_BUFFER_SIZE);
     //Serial.print(inChar);
     for(int i=0; i<newBytes;++i) {
-      int inChar = bytes[i];
+      int inChar = inputBytes[i];
       if(inChar >=100) { //new row
         serialInputBoardPosition=0;
         currentRowInput = inChar-100;
@@ -163,53 +165,12 @@ int gridIndex(int row, int index) {
   
 }
 
-
-/*
-void serialEvent() {
-  while (Serial.available()) {
-    int inChar = Serial.read();
-    //digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-    //delay(50);                       // wait for a second
-    //digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-    //delay(50);                       // wait for a second
-    if(inChar == 255) {
-      serialInputBoardPosition=0;
-    } else {
-      if(serialInputBoardPosition < STRIP_LENGTH) {
-        inputBoard[serialInputBoardPosition++] = inChar;
-      }
-    }
-  }
-}
-*/
-
-/*
-void serialEvent() {
-  while (Serial.available()) {
-    int inChar = Serial.read();
-    //delay(300);
-    Serial.println(inChar);
-  }
-  Serial.println("hi");
-}
-*/
-void translateBoard(int* board) {
-  for(int i=0; i<STRIP_LENGTH; ++i) {
-    //outputBoard[i] = Wheel(board[mapping[i]]);
-    //outputBoard[i] = Wheel(random(256));
-    //outputBoard[i] = Wheel(mapping[i]);
-    //outputBoard[mapping[i]] = board[i];
-    //Serial.println(mapping[i]);
-    //board[mapping[i]];
-  }
-}
-
 void checkTetrisBoard() {
   inputBoard[(drawNext+STRIP_LENGTH-1)%STRIP_LENGTH] = -1;
   inputBoard[ drawNext++ ] = random(256);
   if(drawNext >= STRIP_LENGTH) {
     drawNext = 0;
-    Serial.println("Loop");
+    //Serial.println("Loop");
   }
 }
 
@@ -227,7 +188,7 @@ void loop()
   //delay(50); //if needed
 
   //uncomment block below for Fortress Party
-  /*
+ /* 
   for (int i=0; i < 5; i++)
   {
     checkerboard(15, 15, Wheel(random(256)), 0, 1000); 
@@ -731,7 +692,7 @@ void lightup(uint8_t w, uint8_t h, uint32_t c, uint16_t wait)
   strip.show();
   delay(wait);
 }
-
+*/
 void checkerboard(uint8_t w, uint8_t h, uint32_t c1, uint32_t c2, uint16_t wait) 
 {
   uint16_t x, y;
@@ -750,7 +711,7 @@ void checkerboard(uint8_t w, uint8_t h, uint32_t c1, uint32_t c2, uint16_t wait)
   strip.show();
   delay(wait);
 }
-
+/*
 void bounce(uint8_t w, uint8_t h, uint16_t wait) 
 {
   // clear tile first
